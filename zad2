@@ -1,0 +1,123 @@
+#define _CRT_SECURE_NO_WARNINGS 
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+typedef struct Osobe* pozicija;
+
+struct Osobe {
+	char ime[50];
+	char prezime[50];
+	int god_rodenja;
+	pozicija next;
+};
+
+pozicija stvori_osobu(const char* ime, const char* prezime, int god_rodenja)
+{
+	pozicija nova_osoba;
+	nova_osoba = (pozicija)malloc(sizeof(pozicija));
+	if (nova_osoba == NULL)
+	{
+		printf("Error");
+		return NULL;
+	}
+	strcpy(nova_osoba->ime, ime);
+	strcpy(nova_osoba->prezime, prezime);
+	nova_osoba->god_rodenja = god_rodenja;
+	nova_osoba->next = NULL;
+	return nova_osoba;
+}
+
+void dodaj_na_pocetak(pozicija head, pozicija nova_osoba)
+{
+	nova_osoba->next = head->next;
+	head->next = nova_osoba;
+}
+
+void ispis(pozicija head)
+{
+	pozicija temp;
+	temp = head->next;
+	while (temp != NULL)
+	{
+		printf("%s %s %d\n", temp->ime, temp->prezime, temp->god_rodenja);
+		temp = temp->next;
+	}
+}
+
+void dodaj_na_kraj(pozicija head, pozicija nova_osoba)
+{
+	pozicija temp = head;
+	while (temp->next != NULL) {
+		temp = temp->next;
+	}
+	temp->next = nova_osoba;
+
+}
+
+pozicija pronadi_prezime(pozicija head, const char* prezime)
+{
+	pozicija temp = head->next;
+	while (temp != NULL) {
+		if (strcmp(temp->prezime, prezime) == 0)
+		{
+			return temp;
+		}
+		temp = temp->next;
+	}
+	return NULL;
+}
+
+void brisi_element(pozicija head, const char* prezime)
+{
+	pozicija temp;
+	temp = head;
+
+	while (temp->next != 0)
+	{
+		if (strcmp(temp->next->prezime, prezime) == 0)
+		{
+			pozicija prev = temp->next;
+			temp->next = prev->next;
+			free(prev);
+			printf("Osoba s prezimenom %s je obrisana s liste.\n", prezime);
+			return;
+		}
+		temp = temp->next;
+	}
+	printf("Osoba s prezimenom %s nije pronadena.\n", prezime);
+}
+
+int main()
+{
+	struct Osobe head;
+	head.next = NULL;
+
+	pozicija osoba1 = stvori_osobu("Ante", "Antic", 1988);
+	dodaj_na_pocetak(&head, osoba1);
+
+	pozicija osoba2 = stvori_osobu("Duje", "Dujic", 1995);
+	dodaj_na_kraj(&head, osoba2);
+
+	pozicija osoba3 = stvori_osobu("Veljko", "Velic", 1978);
+	dodaj_na_kraj(&head, osoba3);
+
+	printf("Lista nakon dodavanja osoba.\n");
+	ispis(&head);
+
+	const char* pretrazi_prezime = "Antic";
+	pozicija pronadena_osoba = pronadi_prezime(&head, pretrazi_prezime);
+	if (pronadena_osoba != NULL)
+	{
+		printf("Pronadena osoba s prezimenom '%s': %s %s %d\n", pretrazi_prezime, pronadena_osoba->ime, pronadena_osoba->prezime, pronadena_osoba->god_rodenja);
+	}
+	else {
+		printf("Osoba s prezimenom'%s' nije pronadena.\n", pretrazi_prezime);
+	}
+	const char* obrisi_prezime = "Dujic";
+	brisi_element(&head, obrisi_prezime);
+
+	printf("Lista nakon brisanja:\n");
+	ispis(&head);
+	return 0;
+}
