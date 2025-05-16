@@ -1,0 +1,140 @@
+//3.ispitni rok-9.7.2024.
+//Napisati program koji cita datoteku koja sadrzi ime i prezime
+//osobe("Osobe.txt") te za svaku osobu kreira slucajan datum
+//rodjenja.Generirani datumi trebaju bit od sijecnja do lipnja i
+//to u 2001. ili 2022. godini pri tome ni jedna od ovih godina
+//nije prijestupna ai treba voditi racuna da razliciti mjeseci
+//imaju razliciti broj dana.Pri kreiranju vezanu listu treba
+//sortirati po datumu rodjenja.
+//Ocjena 2:Ispisati vezanu listu osoba sortiranu po datumu rodjenja.
+
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<time.h>
+
+
+typedef struct Osoba* pozicijaO;
+typedef struct Datum* pozicijaD;
+
+
+pozicijaO createPerson(const char* ime, const char* prezime);
+void dodajSortirano(pozicijaO head, pozicijaO newPerson);
+int readFromFile(const char* filename, pozicijaO head);
+void ispis(pozicijaO head);
+pozicijaD generirajDatum();
+
+struct Datum
+{
+	int d;
+	int m;
+	int y;
+};
+
+struct Osoba
+{
+	char ime[20];
+	char prezime[25];
+	pozicijaO next;
+	pozicijaD datum;
+};
+
+pozicijaO createPerson(const char* ime, const char* prezime)
+{
+	pozicijaO newPerson = (pozicijaO)malloc(sizeof(struct Osoba));
+	if (newPerson == NULL)
+	{
+		printf("\nError in malloc.");
+		return NULL;
+	}
+	strcpy(newPerson->ime, ime);
+	strcpy(newPerson->prezime, prezime);
+	newPerson->datum = generirajDatum();
+	newPerson->next = NULL;
+
+	return newPerson;
+}
+
+void dodajSortirano(pozicijaO head, pozicijaO newPerson)
+{
+	pozicijaO temp = head;
+	if (temp->next == NULL) {
+		head->next = newPerson;
+		return;
+	}
+	while (temp->next != NULL &&  ((newPerson->datum->y>temp->next->datum->y) || (newPerson->datum->y==temp->next->datum->y && newPerson->datum->m>temp->next->datum->m) || (newPerson->datum->y == temp->next->datum->y && newPerson->datum->m == temp->next->datum->m && newPerson->datum->d>temp->next->datum->d)))
+	{
+		temp = temp->next;
+	}
+	newPerson->next = temp->next;
+	temp->next = newPerson;
+}
+
+
+int readFromFile(const char* filename,pozicijaO head)
+{
+	FILE* fp = fopen(filename, "r");
+	if (fp == NULL)
+	{
+		printf("\nError in openinig");
+		return -1;
+	}
+	pozicijaO newPerson;
+	char ime[25];
+	char prezime[30];
+	while (fscanf(fp, "%s %s", ime, prezime) == 2)
+	{
+		newPerson = createPerson(ime, prezime);
+		dodajSortirano(head, newPerson);
+
+	}
+	fclose(fp);
+	return 0;
+}
+
+void ispis(pozicijaO head)
+{
+	pozicijaO temp;
+	temp = head->next;
+	while (temp != NULL)
+	{
+		printf("\n%s  %s  %d %d %d ", temp->ime, temp->prezime,temp->datum->d,temp->datum->m, temp->datum->y);
+		temp = temp->next;
+	}
+}
+
+pozicijaD generirajDatum() {
+	pozicijaD d = (pozicijaD)malloc(sizeof(struct Datum));
+	if (d==NULL) {
+		printf("Greška pri alokaciji memorije za datum!\n");
+		return NULL;
+	}
+
+	int daniPoMjesecu[] = { 31, 28, 31, 30, 31, 30 };  
+	int mjesec = 1 + rand() % 6; 
+	int dan = 1 + rand() % daniPoMjesecu[mjesec - 1];  
+	int godina = (rand() % 2 == 0) ? 2001 : 2022;  
+
+	d->d = dan;
+	d->m = mjesec;
+	d->y = godina;
+
+	return d;
+}
+
+
+
+int main()
+{
+	struct Osoba head;
+	head.next = NULL;
+	srand(time(NULL));
+
+	if (readFromFile("osobe.txt", &head) == 0)
+	{
+		printf("\nOsobe iz datoteke: ");
+		ispis(&head);
+	}
+	return 0;
+}
